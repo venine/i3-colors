@@ -1,4 +1,4 @@
-**Available Scripts:
+#Available Scripts:
 *Some script to make my experience less annoying.* 
 1. executeScript : Take filename as input and execute it with the correct program. The output shall be displayed.
 2. i3color.py : Change the bezel colors of i3 windows.
