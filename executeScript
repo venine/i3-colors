@@ -1,0 +1,29 @@
+#!/bin/bash
+
+filename=$( realpath $1 )
+e=${filename##*.}
+x=""
+
+case $e in
+     py) x=python3    ;;
+     pl) x=perl	      ;;
+     bash) x=bash     ;;
+     sh) x=bash	      ;;
+     zsh) x=zsh	      ;;
+     lua) x=lua	      ;;
+     lisp) x=clisp    ;;
+     js) x=node	      ;;
+     *) echo 'cannot execute this.'; exit 1 ;;
+esac
+
+$x $filename &>/dev/stdout
+     
+     
+     
+
+
+
+
+
+
+

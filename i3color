@@ -1,0 +1,148 @@
+#!/usr/bin/python3
+
+import json
+import argparse
+import os
+import time
+import shutil
+import re
+
+colors = {'focusbg' : None, 'focusfg' : None, 'unfocusfg' : None, 'unfocusbg' : None, 'inactivebg' : None, 'inactivefg' : None}
+colorsJSON = None
+CONFIG = os.environ['HOME'] + '/.config/i3/config'
+THEMES = f'{os.environ["HOME"]}/.i3themes'
+BACKUP = CONFIG + time.strftime('%y%b%d@%S')
+themes = []
+
+if not os.path.exists(CONFIG):
+    print('No i3 config found.')
+    themes = False
+    exit
+
+if not os.path.exists(f'{os.environ["HOME"]}/.i3themes'):
+    os.mkdir(f'{os.environ["HOME"]}/.i3themes')
+    themes = False
+else:
+    themes = os.listdir(THEMES)
+
+dat = None
+with open(CONFIG) as f:
+    dat = f.readlines()
+
+def changeColors(theme=None):
+    global dat
+    shutil.copy(CONFIG, BACKUP)
+
+    if theme != None:
+        theme = themes[theme]
+        with open(THEMES + f'/{theme}', 'w') as j:
+            j.write(json.dumps(colors))
+
+    
+    template = ['client.focused $focusbg $focusbg $focusfg $focusbg\n','client.unfocused $unfocusbg $unfocusbg $unfocusfg $unfocusbg\n', 'client.focused_inactive $inactivebg $inactivebg $inactivefg $inactivebg\n']
+
+    templateVars = ''
+    r1 = re.compile('^client\.*')
+    r2 = re.compile('^set\s\$(focus|unfocus|inactive)')
+    dat = list(filter(lambda x: not r1.search(x), dat))
+    dat = list(filter(lambda x: not r2.search(x), dat))
+    
+    
+    for i in colors.keys():
+        dat.append(f'set ${i} "{colors[i]}"\n')
+        
+    for i in template:
+        dat.append(i)
+    
+    with open(CONFIG, 'w') as f:
+        f.write(('').join(dat))
+    return
+
+
+parser = argparse.ArgumentParser(description='Change the window border colors.')
+parser.add_argument('--focus-bg',  dest='focusbg', help='change focused window bg')
+parser.add_argument('--unfocus-bg',  dest='unfocusbg', help='change unfocused window bg')
+parser.add_argument('--inactive-bg',  dest='inactivebg', help='change inactiveed window bg')
+parser.add_argument('--focus-fg',  dest='focusfg', help='change focused window fg')
+parser.add_argument('--inactive-fg',  dest='inactivefg', help='change inactiveed window fg')
+parser.add_argument('--unfocus-fg',  dest='unfocusfg', help='change unfocused window fg')
+parser.add_argument('--theme', help='mention the INT index for the particular theme.')
+parser.add_argument('--list', action='store_true', help='list themes')
+parser.add_argument('--save', help='save the new theme that was just created.')
+parser.add_argument('--remove', help='remove the selected theme by INT index.')
+args = parser.parse_args()
+
+colors['unfocusbg'] = args.unfocusbg
+colors['unfocusfg'] = args.unfocusfg
+colors['focusbg'] = args.focusbg
+colors['focusfg'] = args.focusfg
+colors['inactivebg'] = args.inactivebg
+colors['inactivefg'] = args.inactivefg
+
+
+if not None in colors:
+    e = False
+    for i in colors.keys():
+        if colors[i] is not None:
+            if not re.search('#[0-9a-zA-Z]{6}', colors[i]):
+                print(f'---> {i} : {colors[i]} is invalid')
+                e = True
+            else:
+                colors[i] = colors[i].rstrip().lstrip()
+    if e:
+        exit
+        
+if all(colors.values()):
+    if not args.save:
+        print('you need to save the theme.')
+        exit
+        
+if args.list:
+    l = len(themes)
+    if l == 0:
+        print('no themes available.')
+        exit
+    for idx, i in enumerate(themes):
+        print(str(idx) +  '.> ', i)
+    exit
+
+
+if args.theme or args.remove:
+    try:
+
+        if args.theme:
+            idx = int(args.theme)
+            theme = themes[idx]
+            with open(THEMES + f'/{theme}') as f:
+                colors = json.loads(f.read())
+                print(f'current theme: {theme}')
+
+            changeColors(theme=idx)
+        elif args.remove:
+            idx = int(args.remove)
+            theme = themes[idx]
+            os.remove(THEMES + f'/{theme}')
+            print(f'theme removed: {theme}')
+            exit
+    except ValueError:
+        raise ValueError("Argument is not an integer")
+    except IndexError:
+        raise IndexError("The requested theme does not exist.")
+    finally:
+        exit
+
+if args.save:
+    if all(colors.values()):
+        themes.append(args.save)
+        changeColors(len(themes)-1)
+    else:
+        print('some of the parameters are missing. These pertain to fg or bg switches.')
+        exit
+        
+            
+            
+        
+    
+        
+    
+

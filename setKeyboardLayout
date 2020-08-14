@@ -1,0 +1,5 @@
+#!/bin/bash 
+
+if [[ "$( lsusb | grep -i keyboard )" ]]; then 
+	setxkbmap -option ctrl:swapcaps
+fi
