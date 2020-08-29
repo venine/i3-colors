@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import json
+import sys
 import argparse
 import os
 import time
@@ -12,8 +13,21 @@ colorsJSON = None
 CONFIG = os.environ['HOME'] + '/.config/i3/config'
 THEMES = f'{os.environ["HOME"]}/.i3themes'
 BACKUP = CONFIG + time.strftime('%y%b%d@%S')
+CURRENT = os.environ['HOME'] + '/.i3colorCurrentTheme.txt' 
 themes = []
 
+if not len(sys.argv) > 1:
+    d = "" 
+    with open(CURRENT) as F:
+        d = F.read()
+    if len(d) > 1:
+        print(f'current theme: {d.rstrip().lstrip()}', end='')
+    else:
+        print('set a theme first.')
+
+if not os.path.exist(CURRENT):
+    with open(CURRENT, 'w') as F:
+        F.write('\n')
 
 if not os.path.exists(CONFIG):
     print('No i3 config found.')
@@ -40,7 +54,7 @@ def changeColors(theme=None):
             j.write(json.dumps(colors))
 
 
-    template = ['client.focused {0} {1} {2} {3}\n','client.unfocused {0} {1} {2} {3}\n', 'client.focused_inactive {0} {1} {2} {3}\n']
+    template = ['client.focused {0} {1} {2} {3} {4}\n','client.unfocused {0} {1} {2} {3}\n', 'client.focused_inactive {0} {1} {2} {3}\n']
 
     templateVars = ''
     r1 = re.compile('^client\..*')
@@ -55,7 +69,7 @@ def changeColors(theme=None):
 
     for idx, i in enumerate(template):
         if 'client.focused ' in i:
-            i = i.format(colors['focusbg'], colors['focusbg'], colors['focusfg'], colors['focusbg'])
+            i = i.format(colors['focusbg'], colors['focusbg'], colors['focusfg'], colors['focusbg'], '#ff0000')
         elif 'client.un' in i:
             i = i.format(colors['unfocusbg'], colors['unfocusbg'], colors['unfocusfg'], colors['focusbg'])
         elif 'client.focused_' in i:
@@ -68,8 +82,14 @@ def changeColors(theme=None):
     
     with open(CONFIG, 'w') as f:
         f.write(('').join(dat))
-    return
 
+    return True
+
+
+def writeCurrentThemeToFile(theme):
+    with open(CURRENT, 'w') as F:
+        F.write(theme)
+    return 
 
 parser = argparse.ArgumentParser(description='Change the window border colors.')
 parser.add_argument('--focus-bg',  dest='focusbg', help='change focused window bg')
@@ -132,7 +152,9 @@ if args.theme or args.remove:
                 colors = json.loads(f.read())
                 print(f'current theme: {theme}')
 
-            changeColors(theme=idx)
+            success = changeColors(theme=idx)
+            if success:
+                writeCurrentThemeToFile(themes[idx])
         elif args.remove:
             idx = int(args.remove)
             theme = themes[idx]
@@ -149,7 +171,10 @@ if args.theme or args.remove:
 if args.save:
     if all(colors.values()):
         themes.append(args.save)
-        changeColors(len(themes)-1)
+        success = changeColors(len(themes)-1)
+        if success:
+            writeCurrentThemeToFile(args.save)
+
     else:
         print('some of the parameters are missing. These pertain to fg or bg switches.')
         print(colors)
