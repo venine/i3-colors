@@ -14,6 +14,7 @@ THEMES = f'{os.environ["HOME"]}/.i3themes'
 BACKUP = CONFIG + time.strftime('%y%b%d@%S')
 themes = []
 
+
 if not os.path.exists(CONFIG):
     print('No i3 config found.')
     themes = False
@@ -38,19 +39,30 @@ def changeColors(theme=None):
         with open(THEMES + f'/{theme}', 'w') as j:
             j.write(json.dumps(colors))
 
-    
-    template = ['client.focused $focusbg $focusbg $focusfg $focusbg\n','client.unfocused $unfocusbg $unfocusbg $unfocusfg $unfocusbg\n', 'client.focused_inactive $inactivebg $inactivebg $inactivefg $inactivebg\n']
+
+    template = ['client.focused {0} {1} {2} {3}\n','client.unfocused {0} {1} {2} {3}\n', 'client.focused_inactive {0} {1} {2} {3}\n']
 
     templateVars = ''
-    r1 = re.compile('^client\.*')
+    r1 = re.compile('^client\..*')
     r2 = re.compile('^set\s\$(focus|unfocus|inactive)')
     dat = list(filter(lambda x: not r1.search(x), dat))
     dat = list(filter(lambda x: not r2.search(x), dat))
     
+            
     
     for i in colors.keys():
         dat.append(f'set ${i} "{colors[i]}"\n')
-        
+
+    for idx, i in enumerate(template):
+        if 'client.focused ' in i:
+            i = i.format(colors['focusbg'], colors['focusbg'], colors['focusfg'], colors['focusbg'])
+        elif 'client.un' in i:
+            i = i.format(colors['unfocusbg'], colors['unfocusbg'], colors['unfocusfg'], colors['focusbg'])
+        elif 'client.focused_' in i:
+            i = i.format(colors['inactivebg'], colors['inactivebg'], colors['inactivefg'], colors['focusbg'])
+        template[idx] = i
+            
+
     for i in template:
         dat.append(i)
     
@@ -72,12 +84,15 @@ parser.add_argument('--save', help='save the new theme that was just created.')
 parser.add_argument('--remove', help='remove the selected theme by INT index.')
 args = parser.parse_args()
 
-colors['unfocusbg'] = args.unfocusbg
 colors['unfocusfg'] = args.unfocusfg
+colors['unfocusbg'] = args.unfocusbg
 colors['focusbg'] = args.focusbg
 colors['focusfg'] = args.focusfg
 colors['inactivebg'] = args.inactivebg
 colors['inactivefg'] = args.inactivefg
+
+if args.unfocusbg == None:
+    colors['unfocusbg'] = colors['focusbg']
 
 
 if not None in colors:
@@ -89,6 +104,7 @@ if not None in colors:
                 e = True
             else:
                 colors[i] = colors[i].rstrip().lstrip()
+            
     if e:
         exit
         
@@ -109,7 +125,6 @@ if args.list:
 
 if args.theme or args.remove:
     try:
-
         if args.theme:
             idx = int(args.theme)
             theme = themes[idx]
@@ -137,6 +152,7 @@ if args.save:
         changeColors(len(themes)-1)
     else:
         print('some of the parameters are missing. These pertain to fg or bg switches.')
+        print(colors)
         exit
         
             
