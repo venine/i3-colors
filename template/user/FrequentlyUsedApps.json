@@ -1,9 +1,0 @@
-[
-  {"name":"Zoom", "command":"zoom"},
-  {"name":"Okular (PDF Opener)", "command":"okular"},
-  {"name":"Android File Transfer", "command":"android-file-transfer"},
-  {"name":"VLC Media Player", "command":"vlc"},
-  {"name":"Cmus Music Player", "command":"terminator -e \"cmus\""},
-  {"name":"File Manager (dolphin)", "command":"dolphin"},
-  {"name":"Book Manager (Calibre)", "command" : "calibre"}
-]

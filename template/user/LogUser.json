@@ -1,7 +1,0 @@
-[
- { "name": "Hibernate", "command": "systemctl hibernate"},
-{  "name": "Poweroff", "command": "systemctl poweroff"},
-{  "name": "Restart", "command": "systemctl reboot"},
-{  "name": "Log off (kill -9 -1)", "command": "kill -9 -1"},
-{  "name": "Suspend", "command": "systemctl suspend"}
-]
