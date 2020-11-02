@@ -1,0 +1,13 @@
+#!/bin/bash 
+ls ~/Wallpapers &>/dev/null
+if [[ $? -ne 0 ]]; then 
+	echo 'no ~/Wallpapers found.'
+	exit
+fi
+IFS=$'\n'
+wallpapers=($( find ~/Wallpapers -regex '.*\(jpg\|png\)'  ))
+[[ ${#wallpapers[@]} -eq 0 ]] && echo 'No wallpapers found. Download some.' && exit 1
+unset IFS
+randomWallpaper="${wallpapers[ $[ RANDOM%${#wallpapers[@]} ] ]}"
+echo $randomWallpaper
+feh --bg-center $randomWallpaper
