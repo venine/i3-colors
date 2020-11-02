@@ -1,0 +1,30 @@
+#!/usr/bin/python3
+
+import json
+import sys
+import subprocess
+
+h = "/home/Caligian"
+jsonLoc = h + '/.i3msgOutput'
+jsonDat = json.loads(subprocess.check_output('i3-msg -t get_workspaces'.split()))
+workspaces = { 'which' : [], 'visible' : "", 'target' : sys.argv[1] }
+
+
+for i in jsonDat:
+     if i['visible']:
+          workspaces['visible'] = i['num']
+          break
+
+
+print("i3-msg 'rename workspace {0} to temporary; rename workspace {1} to {0}; rename workspace temporary to {1}; workspace {1}'".format(workspaces['visible'],workspaces['target']))
+
+          
+     
+
+
+
+     
+     
+     
+
+

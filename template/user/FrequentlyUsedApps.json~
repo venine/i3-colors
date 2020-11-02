@@ -1,0 +1,6 @@
+[
+  {"name":"Zoom", "command":"zoom"},
+  {"name":"VLC Media Player", "command":"vlc"},
+  {"name":"Cmus Music Player", "command":"terminator -e \"cmus\""},
+  {"name":"File Manager (Nautilus)", "command":"nautilus"}
+]

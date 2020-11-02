@@ -1,0 +1,8 @@
+[
+  {"name":"Google Docs", "command":"firefox --new-window docs.google.com"},
+  {"name":"Libreoffice", "command":"libreoffice"},
+  {"name":"Emacs (GUI)", "command":"emacs"},
+  {"name":"Emacs (Terminal)", "command":"emacsclient -t"},
+  {"name":"Vim", "command":"terminator -e vim"}
+]
+  

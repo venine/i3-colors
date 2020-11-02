@@ -1,0 +1,17 @@
+[
+  { "name":"Google Chrome", "command":"google-chrome --new-window" },
+  { "name":"Gmail", "command":"google-chrome --new-window gmail.com"},
+  { "name":"YouTube", "command":"google-chrome --new-window youtube.com"},
+  { "name":"Protonmail", "command":"google-chrome --new-window protonmail.com"},
+  { "name":"intpforum", "command":"google-chrome --new-window intpforum.com"},
+  { "name":"Google Docs", "command":"google-chrome --new-window docs.google.com"},
+  { "name":"Google Meet", "command":"google-chrome --new-window meet.google.com"},
+  { "name":"Incognito Mode", "command":"google-chrome --incognito"},
+  { "name":"Incognito Mode: Gmail", "command":"google-chrome --incognito gmail.com"},
+  { "name":"Incognito Mode: YouTube", "command":"google-chrome --incognito youtube.com"},
+  { "name":"Incognito Mode: Protonmail", "command":"google-chrome --incognito protonmail.com"},
+  { "name":"Incognito Mode: intpforum", "command":"google-chrome --incognito intpforum.com"},
+  { "name":"Incognito Mode: Google Docs", "command":"google-chrome --incognito docs.google.com"},
+  { "name":"Incognito Mode: Google Meet", "command":"google-chrome --private-window meet.google.com"}
+]
+  
