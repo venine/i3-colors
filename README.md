@@ -11,8 +11,10 @@ After you are done modularizing, read this.
 ## Features 
 1. Change window border colors. 
 2. Change dmenu colors. 
-3. Store each theme in ~/.config/i3/i3themes/ in JSON format 
 
+## Caveats
+1. Current theme    => ~/currentTheme.i3
+2. Themes' location => ~/.config/i3/i3themes
 
 Usage is quite intuitive. Here's the --help output
 
