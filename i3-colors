@@ -113,9 +113,10 @@ sub ApplyTheme {
 	$line =~ /^\s*colors/ ? last  : ++$ctr;
     }
 
-    my %missing = ('background', 1, 'statusline', 1, 'focused_workspace', 1, 'inactive_workspace', 1, 'binding_mode', 1);
+    my %missing = ('background', 1, 'statusline', 1, 'focused_workspace', 1, 'inactive_workspace', 1, 'binding_mode', 1,);
     my %strings = (
 	'background' => $colors->{i_bg},
+	'color_separator' => $colors->{i_fg},
 	'statusline' => $colors->{i_fg},
 	'focused_workspace' => $colors->{f_bg} . " " . $colors->{f_bg} . " " . $colors->{f_fg} ,
 	'inactive_workspace' => $colors->{u_bg} . " " . $colors->{u_bg} . " " . $colors->{u_fg} ,
@@ -140,7 +141,7 @@ sub ApplyTheme {
 	} elsif ($line =~ /binding_mode/i) {
 	    $line =~ s/#.+/$strings{binding_mode}/;
 	    --$missing{binding_mode};
-	}
+	} 
 	$blines[$i] = $line;
     }
 
@@ -164,7 +165,7 @@ sub ApplyTheme {
 	++$idx; 
     }
     die "Dmenu is not being used. Not changing its colors.\n" if $found == 0; 
-    $lines[$idx] =~ s/(dmenu_run).+/$1 -fn 'Sans' -sb '$colors->{f_bg}' -sf '$colors->{f_fg}' -nb '$colors->{u_bg}' -nf '$colors->{u_fg}' -l 5\n/;
+    $lines[$idx] =~ s/(dmenu_run).+/$1 -b -fn 'Sans' -sb '$colors->{f_bg}' -sf '$colors->{f_fg}' -nb '$colors->{u_bg}' -nf '$colors->{u_fg}' -l 5\n/;
     $str = join "", @lines;
     print $FH $str;
     close $FH;
