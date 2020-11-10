@@ -1,0 +1,256 @@
+#!/usr/bin/perl
+
+use Getopt::Std;
+use JSON;
+use Data::Dumper;
+use strict;
+use warnings; 
+
+#################################################################################################
+# Define your default stuff
+my $settings = $ENV{HOME} . "/CustomDmenu.json";
+my $firefox = "firefox --new-window";
+my $firefoxPrivate = "firefox --private-window";
+
+die "1 arg required.\n" if scalar(@ARGV) == 0;
+
+my %available = (
+    "freq" => {"Calibre"				=> "calibre",
+		   "Vlc Media Player"			=> "vlc",
+		   "Eye of Gnome Photo Viewer"		=> "eog",
+		   "Cmus Music Player"			=> "terminator -e cmus",
+		   "Zoom"				=> "zoom",
+		   "Google Meet"			=> "$firefox meet.google.com",
+		   "Google Mail"			=> "$firefox mail.google.com",
+		   "Minecraft"				=> "minecraft",
+		   "Okular PDF Viewer"			=> "okular",
+		   'Atril PDF Viewer'			=> "atril",
+                   "Redshift"				=> "redshift"},
+
+    "editors" => {"Neovim"				=> "terminator -e nvim" ,
+		      "Neovim GUI"			=> "nvim-qt",
+		      "Emacs GUI"			=> "emacs -c -a emacs" ,
+		      "Emacs Terminal"   		=> "terminator -e \"emacsclient -t\"",
+		      "Libreoffice Suite"		=> "libreoffice",
+		      "Google Docs"			=> "$firefox docs.google.com" },
+
+    "websites" => {"Google Docs"			=> "$firefox docs.google.com",
+		       "Google Meet"                    => "$firefox meet.google.com",
+		       "DuckDuckGo Search Engine"	=> " $firefox duckduckgo.com",
+		       "Google Search Engine"		=> "$firefox google.com",
+		       "Private Window"			=> "$firefoxPrivate",
+		       "Youtube"			=> "$firefox youtube.com",
+		       "Forum for INTPs"		=> " $firefox intpforum.com",
+		       "Reddit"				=> " $firefox reddit.com",
+		       "PDFDrive"			=> "$firefox pdfdrive.com",
+		       "b-ok.asia"			=> "$firefox b-ok.asia",
+		       "Libgen library"			=> " $firefox libgen.rs",
+		       "Scihub"				=> "$firefox scihubtw.tw"},
+
+    "swapWorkspace" => {1 => "bash /home/caligian/bin/swapWorkspace 1",
+			2 => "bash /home/caligian/bin/swapWorkspace 2",
+			3 => "bash /home/caligian/bin/swapWorkspace 3",
+			4 => "bash /home/caligian/bin/swapWorkspace 4",
+			5 => "bash /home/caligian/bin/swapWorkspace 5",
+			6 => "bash /home/caligian/bin/swapWorkspace 6",
+			7 => "bash /home/caligian/bin/swapWorkspace 7",
+			8 => "bash /home/caligian/bin/swapWorkspace 8",
+			9 =>  "bash /home/caligian/bin/swapWorkspace 9",
+			10 => "bash /home/caligian/bin/swapWorkspace 10"},
+
+    "logout"       => {"Suspend" => "systemctl suspend",
+			   "Reboot" => "systemctl reboot",
+			   "Poweroff" => "systemctl poweroff",
+			   "Log Out" => "logout",
+			   "Hibernate" => "systemctl hibernate",},
+    "pkill"        => {},
+    "i3-colors"    => {},
+    );
+
+# end 
+#################################################################################################
+# This will be used for the ones that you will load later. 
+
+my $help="$0 : Open dmenu with a list of custom items.
+1. Put your items in the hash in the script. You will understand the format. 
+2. Then use your window manager's keybindings to open these menus in dmenu
+3. Alternatively, keep adding aliases and categories. They will be saved and loaded too.
+	-c CATEGORY
+	-m ALIAS::COMMAND 
+
+	Structure - CATEGORY 
+			\_ DISPLAY NAME/ALIAS -> COMMAND 
+
+        example - 
+		-c CATEGORY -m \"ALIAS::COMMAND\"
+	
+	After passing this, THIS CATEGORY will be used to launch dmenu.
+
+5. There is a ~/CustomDmenu.json which contains all the categories and aliases that you added through the commandline along with the ones already defined. They will be automatically loaded.
+6. -k to get a menu of running apps (as displayed ) and pkill them. Beware. You will be killing WHOLE PROCESSES and not single instances signified by their INDIVIDUALS PIDs. I will be using 'pkill'. 
+
+Available categories -
+" . join "\n", keys %available ;
+
+
+die "$help\n" if $ARGV[0] =~ /-h|help/;
+
+####################################################################################################
+# get dmenu params. CHANGE IT TO YOUR FILE LOC. 
+open my $fh, "<", "/home/caligian/.config/i3/user/default.i3";
+my @lines = <$fh>;
+close $fh;
+my $found = 0;
+my $dmenuParams = "";
+my $idx = 0;
+foreach my $line (@lines) {
+    if ($line =~ /dmenu_run\s*(-.+)/) {
+	$dmenuParams = $1;
+	$found = 1;
+	last;
+    }
+    ++$idx;
+}
+
+die "Dmenu is not being used. Exiting.\n" if not $found;
+
+####################################################################################################
+# Executor function
+sub Exec {
+    my $prog = shift;
+    my $dmenuParams = shift;
+
+    my @names; 
+    @names = keys %{$available{$prog}};
+    
+    @names = sort { $a <=> $b } map { int $_ } @names if $prog eq "swapWorkspace";
+
+    my $string = join "\n", @names;
+    $string =~ s/\n{2}/\n/g;
+    chomp $string;
+
+    my $len = scalar @names;
+    $len = 30 if $len > 30;
+
+    $dmenuParams =~ s/-l\s*\d+//;
+
+    # Display the dmenu string
+    my $command = "echo '$string' | perl -pe 's/\n{2}/\n/' |  dmenu -i $dmenuParams -l $len";
+    my $execProg = qx/ $command /;
+    chomp $execProg; 
+
+    $prog = $available{$prog}->{$execProg};
+
+    qx/$prog/ if $prog ne "";
+}
+
+####################################################################################################
+# Load from CustomDmenu.json 
+if (-f $settings) {
+    open my $FH, "<", $settings;
+    my $lines = join "", <$FH>;
+    close $FH;
+    my $ref = decode_json($lines) if $lines =~ /[a-z]/;
+
+    foreach my $mainkey (keys %$ref) {
+	map {
+	    my $key1 = $mainkey;
+	    my $key2 = $_;
+	    $available{$key1}->{$key2} = $ref->{$key1}->{$key2};
+	} keys %{$ref->{$mainkey}};
+    } 
+}
+
+my $StripWhitespace = sub {
+    my $ret = $_[0] =~ s/^\s*//r =~ s/\s*$//r;
+    return $ret if $ret;
+};
+
+my $prog = "";
+
+#c=category a=alias m=command
+our ($opt_c, $opt_m, $opt_k, $opt_t, $opt_a) = ("","",0,0,0);
+getopts("c:m:kta");
+
+#################################################################################################
+if ($opt_a) {
+    my @allcats = keys %available;
+    my $str = "";
+    my $len;
+    map { ++$len if $_ =~ /[[:alnum:]]/ } @allcats;
+    $str = join "\n", @allcats ;
+    $str = sprintf q( echo "%s" | perl -0777 -ne 'print $_ =~ s/\n{2}/\n/rsm' |  dmenu -i %s -l %s  ), $str, $dmenuParams, $len;
+    $str =~ s/\n{2}/\n/sm;
+    $prog = qx($str);
+    my $execString = "CustomDmenu";
+    chomp $prog;
+    if ($prog eq "i3-colors") { $opt_t = 1; } 
+    elsif ($prog eq "pkill")  { $opt_k = 1; }
+    else { $opt_c = $prog }
+}
+# i3-colors
+if ($opt_t) {
+    my @themes = qx(/home/caligian/bin/i3-colors --show);
+    $prog = "i3-colors";
+    foreach my $theme (@themes) {
+	my ($idx, $theme) = split " ", $theme;
+	$available{$prog}->{$theme} = sprintf "%s --theme %s", "/home/caligian/bin/i3-colors", $idx; 
+    }
+}
+
+#################################################################################################
+# PKILL PROCESSES
+
+if ($opt_k) {
+    my @ps = qx( ps -e );
+    my @processes = ();
+    map { my @a = split ' ', $_ ; push @processes, $a[3] } @ps;
+    my %p = ();
+    map {
+	my @z = split '/', $_;
+	$p{$z[0]}++;
+    } @processes;
+
+    @processes = keys %p;
+
+    $available{pkill} = {};
+    map {
+	$available{pkill}->{$_} = "pkill $_";
+    } @processes;
+
+    $prog = "pkill";
+} 
+
+#################################################################################################
+
+if ($opt_c) {
+    if ($opt_m =~ /::/) {
+	$available{$opt_c} = {} if not defined $available{$opt_c};
+	if ($opt_m =~ /,/) {
+	    my @aliases = split /\s*,\s*/, $opt_m;
+	    map {
+		my ($a, $c) = split /\s*::\s*/, $_;
+		($a, $c) = ($StripWhitespace->($a), $StripWhitespace->($c));
+		$available{$opt_c}->{$a} = $c;
+	    } @aliases;
+
+	} elsif ($opt_m ne "" and $opt_m ) {
+	    $opt_c = $StripWhitespace->($opt_c);
+	    my ($a, $c) = split /\s*::\s*/, $opt_m;
+	    $available{$opt_c}->{$a} = $c;
+	}
+    } elsif ($opt_m ne "" and $opt_m !~ /::/) {
+	die "Invalid format provided for -m INPUT.\n";
+    }
+    open my $FH, ">", $settings;
+    my $str = encode_json(\%available);
+    print $FH $str . "\n";
+    close $FH;
+    $prog = $opt_c;
+} 
+
+die "No such category exists.\n" if not defined $available{$prog};
+
+
+
+Exec($prog, $dmenuParams) if $prog ne "";
