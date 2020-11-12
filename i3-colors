@@ -6,7 +6,6 @@ use strict;
 use JSON;
 use File::Copy; 
 use autodie;
-use Data::Dumper;
 
 
 my $help = "
