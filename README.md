@@ -15,6 +15,8 @@ After you are done modularizing, read this.
 ## Caveats
 1. Current theme    => ~/currentTheme.i3
 2. Themes' location => ~/.config/i3/i3themes
+3. Required perl modules => Getopt::Long, JSON, File::Copy, File::Basename 
+`sudo cpan Getopt::Long File::Copy File::Basename`
 
 Usage is quite intuitive. Here's the --help output
 
