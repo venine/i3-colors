@@ -8,11 +8,11 @@ Run these commands or do it by yourself.
 
 After you are done modularizing, read this. 
 
-## Features 
+### Features 
 1. Change window border colors. 
 2. Change dmenu colors. 
 
-## Caveats
+### Caveats
 1. Current theme    => ~/currentTheme.i3
 2. Themes' location => ~/.config/i3/i3themes
 3. Required perl modules => Getopt::Long, JSON, File::Copy, File::Basename 
@@ -52,4 +52,5 @@ Caveats
 	Keep the above file blank and do not touch it if you are using this program for the first time
 7. i3bar's colors would be changed accordingly. Background and Statusline shall be set to inactive_focused BG and FG. Active Workspace's colors shall be focused BG and FG.
 ```
-
+### Screenshot
+![Structure](https://github.com/venine/i3-colors/blob/master/i3colors.png?raw=true)
