@@ -16,12 +16,13 @@ our $home = "$ENV{HOME}";
 sub LoadConfig {
     my $loc = $ENV{HOME} . "/.config/CustomDmenu/config.yaml";
     $config = LoadFile($loc);
-    
 }
 
 sub WriteConfig {
     my $yaml = Dump($mainconfig);
     open my $FH, ">", $settings;
+    # reverse the processes - replace the expansions with the aliases. 
+    ReplaceAliases($command, 1); 
     print $FH $yaml; 
 }
 
@@ -159,8 +160,19 @@ sub ShowDrawers {
 
 sub ReplaceAliases {
     my $hashref = shift; 
-    my $aliasHash = $config->{aliases}; 
+    my $aliasHash = $config->{aliases};
+    my $reverse = shift;
 
+    # reverse map the aliases too
+    unless (defined $config->{aliasesReverseMapped}) { 
+	$config->{aliasesReverseMapped} = {};
+	foreach my $key (keys %$aliasHash) {
+	    my $value = $aliasHash->{$key};
+	    $config->{aliasesReverseMapped}->{$value} = $key; 
+	}
+    }
+    
+    
     foreach my $k (keys %$hashref) {
 	my $ref = reftype $hashref->{$k};
 	if (defined $ref and $ref eq "HASH") {
@@ -174,6 +186,16 @@ sub ReplaceAliases {
 	    my $elem = $hashref->{$k};
 	    $elem =~ s/\$\{$alias\}/$real/;
 	    $hashref->{$k} = $elem; 
+	}
+	if ($reverse) {
+	    if (defined $hashref->{$k}) {
+		foreach my $a (keys %{$config->{aliasesReverseMapped}}) {
+		    if ($hashref->{$k} =~ /($a)/) {
+			my $originalAlias = sprintf '${%s}', $config->{aliasesReverseMapped}->{$1}; 
+			$hashref->{$k} =~ s/$1/$originalAlias/; 
+		    }
+		}
+	    }
 	} 
     }
 }
@@ -214,13 +236,10 @@ $config = $mainconfig->{config};
 ReplaceAliases($config); 
 ReplaceAliases($command);
 
-if ($opt_c) {
-	die sprintf("Category %s does not exist.\n", $opt_c) unless defined $command->{$opt_c}; 
-	if ($opt_m) {
-		AppendCommand($opt_c, $opt_m);
-	} else {
-		Executor($command, $opt_c); 
-	}
+if ($opt_c and $opt_m) {
+    AppendCommand($opt_c, $opt_m);
+} elsif ($opt_c) {
+    Executor($command, $opt_c); 
 } elsif ($opt_t) {
      Handlei3Colors();
 } elsif ($opt_k) {
