@@ -51,3 +51,4 @@ Caveats
 	Keep the above file blank and do not touch it if you are using this program for the first time
 7. i3bar's colors would be changed accordingly. Background and Statusline shall be set to inactive_focused BG and FG. Active Workspace's colors shall be focused BG and FG.
 ```
+
